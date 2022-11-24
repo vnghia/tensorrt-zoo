@@ -8,6 +8,8 @@
 
 #include <ostream>
 
+#include "macros.h"
+#include "spdlog/spdlog.h"
 #include "utils.h"
 
 namespace op {
@@ -20,7 +22,7 @@ Point<T>::Point(const Point<T>& point) {
     x = point.x;
     y = point.y;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -32,7 +34,7 @@ Point<T>& Point<T>::operator=(const Point<T>& point) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -43,7 +45,7 @@ Point<T>::Point(Point<T>&& point) {
     x = point.x;
     y = point.y;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -55,7 +57,7 @@ Point<T>& Point<T>::operator=(Point<T>&& point) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -65,7 +67,7 @@ std::string Point<T>::toString() const {
   try {
     return '[' + std::to_string(x) + ", " + std::to_string(y) + ']';
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return "";
   }
 }
@@ -78,7 +80,7 @@ Point<T>& Point<T>::operator+=(const Point<T>& point) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -88,7 +90,7 @@ Point<T> Point<T>::operator+(const Point<T>& point) const {
   try {
     return Point<T>{T(x + point.x), T(y + point.y)};
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return Point<T>{};
   }
 }
@@ -101,7 +103,7 @@ Point<T>& Point<T>::operator+=(const T value) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -111,7 +113,7 @@ Point<T> Point<T>::operator+(const T value) const {
   try {
     return Point<T>{T(x + value), T(y + value)};
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return Point<T>{};
   }
 }
@@ -124,7 +126,7 @@ Point<T>& Point<T>::operator-=(const Point<T>& point) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -134,7 +136,7 @@ Point<T> Point<T>::operator-(const Point<T>& point) const {
   try {
     return Point<T>{T(x - point.x), T(y - point.y)};
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return Point<T>{};
   }
 }
@@ -147,7 +149,7 @@ Point<T>& Point<T>::operator-=(const T value) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -157,7 +159,7 @@ Point<T> Point<T>::operator-(const T value) const {
   try {
     return Point<T>{T(x - value), T(y - value)};
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return Point<T>{};
   }
 }
@@ -170,7 +172,7 @@ Point<T>& Point<T>::operator*=(const T value) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -180,7 +182,7 @@ Point<T> Point<T>::operator*(const T value) const {
   try {
     return Point<T>{T(x * value), T(y * value)};
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return Point<T>{};
   }
 }
@@ -193,7 +195,7 @@ Point<T>& Point<T>::operator/=(const T value) {
     // Return
     return *this;
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return *this;
   }
 }
@@ -203,7 +205,7 @@ Point<T> Point<T>::operator/(const T value) const {
   try {
     return Point<T>{T(x / value), T(y / value)};
   } catch (const std::exception& e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return Point<T>{};
   }
 }

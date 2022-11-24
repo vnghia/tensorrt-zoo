@@ -1,6 +1,7 @@
 #include "ResizeAndMerge.hpp"
 #include "cuda.cuh"
 #include "cuda.hpp"
+#include "spdlog/spdlog.h"
 #include "utils.h"
 
 namespace op {
@@ -303,15 +304,16 @@ void resizeAndMergeGpu(T *targetPtr, const std::vector<const T *> &sourcePtrs,
   try {
     // Sanity checks
     if (sourceSizes.empty())
-      error("sourceSizes cannot be empty.", __LINE__, __FUNCTION__, __FILE__);
+      spdlog::error("sourceSizes cannot be empty.", __LINE__, __FUNCTION__,
+                    __FILE__);
     if (sourcePtrs.size() != sourceSizes.size() ||
         sourceSizes.size() != scaleInputToNetInputs.size())
-      error("Size(sourcePtrs) must match size(sourceSizes) and "
-            "size(scaleInputToNetInputs). Currently: " +
-                std::to_string(sourcePtrs.size()) + " vs. " +
-                std::to_string(sourceSizes.size()) + " vs. " +
-                std::to_string(scaleInputToNetInputs.size()) + ".",
-            __LINE__, __FUNCTION__, __FILE__);
+      spdlog::error("Size(sourcePtrs) must match size(sourceSizes) and "
+                    "size(scaleInputToNetInputs). Currently: " +
+                        std::to_string(sourcePtrs.size()) + " vs. " +
+                        std::to_string(sourceSizes.size()) + " vs. " +
+                        std::to_string(scaleInputToNetInputs.size()) + ".",
+                    __LINE__, __FUNCTION__, __FILE__);
 
     // Parameters
     const auto channels = targetSize[1];
@@ -374,9 +376,10 @@ void resizeAndMergeGpu(T *targetPtr, const std::vector<const T *> &sourcePtrs,
         } else {
           if (widthTarget / widthSource != 8 ||
               heightTarget / heightSource != 8)
-            error("Kernel only implemented for 8x resize. Notify us if this "
-                  "error appears.",
-                  __LINE__, __FUNCTION__, __FILE__);
+            spdlog::error(
+                "Kernel only implemented for 8x resize. Notify us if this "
+                "error appears.",
+                __LINE__, __FUNCTION__, __FILE__);
           const auto rescaleFactor =
               (unsigned int)std::ceil(heightTarget / (float)(heightSource));
           const dim3 threadsPerBlock{rescaleFactor, rescaleFactor, 1};
@@ -397,8 +400,8 @@ void resizeAndMergeGpu(T *targetPtr, const std::vector<const T *> &sourcePtrs,
       }
       // Old inefficient multi-scale merging
       else
-        error("It should never reache this point. Notify us otherwise.",
-              __LINE__, __FUNCTION__, __FILE__);
+        spdlog::error("It should never reache this point. Notify us otherwise.",
+                      __LINE__, __FUNCTION__, __FILE__);
     }
     // Multi-scaling merging
     else {
@@ -486,9 +489,10 @@ void resizeAndMergeGpu(T *targetPtr, const std::vector<const T *> &sourcePtrs,
       // Super optimized function
       // OP_CUDA_PROFILE_INIT(REPS);
       if (sourcePtrs.size() > 8)
-        error("More than 8 scales are not implemented (yet). Notify us to "
-              "implement it.",
-              __LINE__, __FUNCTION__, __FILE__);
+        spdlog::error(
+            "More than 8 scales are not implemented (yet). Notify us to "
+            "implement it.",
+            __LINE__, __FUNCTION__, __FILE__);
       const dim3 threadsPerBlock{THREADS_PER_BLOCK_1D, THREADS_PER_BLOCK_1D, 1};
       const dim3 numBlocks{getNumberCudaBlocks(widthTarget, threadsPerBlock.x),
                            getNumberCudaBlocks(heightTarget, threadsPerBlock.y),
@@ -548,7 +552,7 @@ void resizeAndMergeGpu(T *targetPtr, const std::vector<const T *> &sourcePtrs,
     }
 
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -567,7 +571,7 @@ void resizeAndPadRbgGpu(T *targetPtr, const T *const srcPtr,
         targetPtr, srcPtr, widthSource, heightSource, widthTarget, heightTarget,
         scaleFactor);
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -588,7 +592,7 @@ void resizeAndPadRbgGpu(T *targetPtr, const unsigned char *const srcPtr,
         targetPtr, srcPtr, widthSource, heightSource, widthTarget, heightTarget,
         scaleFactor);
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 template __global__ void

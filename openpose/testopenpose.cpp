@@ -85,9 +85,7 @@ int main(int argc, char** argv) {
   }
   int maxBatchSize = N;
 
-  OpenPose* openpose =
-      new OpenPose(prototxt, caffemodel, save_engine, outputBlobname,
-                   calibratorData, maxBatchSize, run_mode);
+  OpenPose* openpose = new OpenPose(save_engine);
 
   int i = 0;
   while (1) {

@@ -23,11 +23,7 @@ class OpenPose {
    * @calibratorData: create an empty instance, not support int8 now.
    * @maxBatchSize: set to 1.
    */
-  OpenPose(const std::string& prototxt, const std::string& caffeModel,
-           const std::string& saveEngine,
-           const std::vector<std::string>& outputBlobName,
-           const std::vector<std::vector<float>>& calibratorData,
-           int maxBatchSize, int runMode);
+  OpenPose(const std::string& saveEngine);
 
   ~OpenPose();
 

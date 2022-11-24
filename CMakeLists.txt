@@ -1,25 +1,64 @@
-cmake_minimum_required(VERSION 3.0)
+cmake_minimum_required(VERSION 3.22)
 
-project(tensorrt_zoo)
-set(CMAKE_CXX_FLAGS "-std=c++11")
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  add_compile_options(-fdiagnostics-color=always)
+elseif("${CMAKE_CXX_COMPILER_ID}" STREQUAL "Clang")
+  add_compile_options(-fcolor-diagnostics)
+endif()
 
-set(CMAKE_LIBRARY_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/lib)
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${PROJECT_SOURCE_DIR}/bin)
+# Project
+project(
+  openposert
+  VERSION 0.0.1
+  LANGUAGES CXX
+)
+enable_language(CUDA)
+set(PROJECT_ROOT_DIR ${CMAKE_CURRENT_SOURCE_DIR})
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_ROOT_DIR}/cmake")
 
-find_package(CUDA REQUIRED)
-include_directories(${CUDA_INCLUDE_DIRS})
+if(NOT CMAKE_BUILD_TYPE)
+  set(CMAKE_BUILD_TYPE "Release")
+endif()
 
+# Prevent building in the source directory
+if(PROJECT_SOURCE_DIR STREQUAL PROJECT_BINARY_DIR)
+  message(
+    FATAL_ERROR
+    "In-source builds not allowed. Please make a new directory (called a build directory) and run CMake from there."
+  )
+endif()
+
+# Ccache
+option(ENABLE_CCACHE "Automatically use ccache if available" ON)
+
+if("${ENABLE_CCACHE}")
+  find_program(CCACHE_PROGRAM ccache NAMES /usr/bin/ccache)
+
+  if(CCACHE_PROGRAM)
+    message(STATUS "ccache found: ${CCACHE_PROGRAM}")
+    set(CMAKE_CXX_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+    set(CMAKE_CC_COMPILER_LAUNCHER "${CCACHE_PROGRAM}")
+  endif()
+endif()
+
+# Output directory
+set(CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${PROJECT_ROOT_DIR}/lib/${CMAKE_BUILD_TYPE}")
+set(CMAKE_LIBRARY_OUTPUT_DIRECTORY "${PROJECT_ROOT_DIR}/lib/${CMAKE_BUILD_TYPE}")
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_ROOT_DIR}/bin/${CMAKE_BUILD_TYPE}")
+
+# Tiny TensorRT
+include(external/tiny_tensorrt)
+
+# OpenCV
 find_package(OpenCV REQUIRED)
-if (NOT OpenCV_FOUND)
-    message(FATAL_ERROR "opencv not found")
-endif (NOT OpenCV_FOUND)
 
-include(cmake/external/tiny_tensorrt.cmake)
+message(STATUS "
+=============> Final Config <===============
+TensorRT headers : ${TENSORRT_INCLUDE_DIR}
+TensorRT library : ${LIBNVINFER}
+CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}
+============================================
+")
 
-link_directories(/usr/lib/x86_64-linux-gnu)
-link_directories(lib/)
-
-find_library(CUDART cudart HINTS /usr/local/cuda/targets/x86_64-linux/lib/)
-
+# Openpose
 add_subdirectory(openpose)
-

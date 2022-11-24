@@ -3,6 +3,7 @@
 #include "cuda.hpp"
 #include "utils.h"
 
+#include "spdlog/spdlog.h"
 #include <thrust/device_ptr.h>
 #include <thrust/scan.h>
 
@@ -186,7 +187,7 @@ void nmsGpu(T *targetPtr, int *kernelPtr, const T *const sourcePtr,
     // log("  NMS2(1k)=" + std::to_string(timeNormalize2) + "ms");
 
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 

@@ -1,6 +1,7 @@
 #include "BodyPartConnector.hpp"
 #include "FastMath.hpp"
 #include "cuda.hpp"
+#include "spdlog/spdlog.h"
 #include "utils.h"
 #include <set>
 
@@ -182,13 +183,15 @@ void connectBodyPartsGpu(Array<T> &poseKeypoints, Array<T> &poseScores,
     const auto totalComputations = pairScoresCpu.getVolume();
 
     if (numberBodyParts == 0)
-      error("Invalid value of numberBodyParts, it must be positive, not " +
-                std::to_string(numberBodyParts),
-            __LINE__, __FUNCTION__, __FILE__);
+      spdlog::error(
+          "Invalid value of numberBodyParts, it must be positive, not " +
+              std::to_string(numberBodyParts),
+          __LINE__, __FUNCTION__, __FILE__);
     if (bodyPartPairsGpuPtr == nullptr || mapIdxGpuPtr == nullptr)
-      error("The pointers bodyPartPairsGpuPtr and mapIdxGpuPtr cannot be "
-            "nullptr.",
-            __LINE__, __FUNCTION__, __FILE__);
+      spdlog::error(
+          "The pointers bodyPartPairsGpuPtr and mapIdxGpuPtr cannot be "
+          "nullptr.",
+          __LINE__, __FUNCTION__, __FILE__);
 
     // const auto REPS = 1000;
     // double timeNormalize0 = 0.;
@@ -270,7 +273,7 @@ void connectBodyPartsGpu(Array<T> &poseKeypoints, Array<T> &poseScores,
     // log("  BPC(new)=" + std::to_string(timeNormalize2) + "ms");
 
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -358,7 +361,7 @@ inline T getScoreAB(const int i, const int j, const T *const candidateAPtr,
     }
     return T(0);
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return T(0);
   }
 }
@@ -381,7 +384,7 @@ void getKeypointCounter(
           minimum -
           keypointCounter; // personCounter = non-considered keypoints + minimum
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -428,7 +431,7 @@ void getKeypointCounter(
 //     }
 //     catch (const std::exception& e)
 //     {
-//         error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+//         spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
 //     }
 // }
 
@@ -443,8 +446,8 @@ std::vector<std::pair<std::vector<int>, T>> createPeopleVector(
   try {
     if (poseModel != PoseModel::BODY_25 && poseModel != PoseModel::COCO_18 &&
         poseModel != PoseModel::MPI_15 && poseModel != PoseModel::MPI_15_4)
-      error("Model not implemented for CPU body connector.", __LINE__,
-            __FUNCTION__, __FILE__);
+      spdlog::error("Model not implemented for CPU body connector.", __LINE__,
+                    __FUNCTION__, __FILE__);
 
     // std::vector<std::pair<std::vector<int>, double>> refers to:
     //     - std::vector<int>: [body parts locations, #body parts found]
@@ -611,8 +614,8 @@ std::vector<std::pair<std::vector<int>, T>> createPeopleVector(
             }
           }
         } else
-          error("Error. Should not reach here.", __LINE__, __FUNCTION__,
-                __FILE__);
+          spdlog::error("Error. Should not reach here.", __LINE__, __FUNCTION__,
+                        __FILE__);
 
         // select the top minAB connection, assuming that each part occur only
         // once sort rows in descending order based on parts + connection score
@@ -727,7 +730,7 @@ std::vector<std::pair<std::vector<int>, T>> createPeopleVector(
     }
     return peopleVector;
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return {};
   }
 }
@@ -794,7 +797,7 @@ pafPtrIntoVector(const Array<T> &pairScores, const T *const peaksPtr,
     // Return result
     return pairConnections;
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return {};
   }
 }
@@ -837,13 +840,15 @@ std::vector<std::pair<std::vector<int>, T>> pafVectorIntoPeopleVector(
 // Debugging
 #ifdef DEBUG
       if (indexA - 1 > peaksOffset || indexA <= 0)
-        error("Something is wrong: " + std::to_string(indexA) + " vs. " +
-                  std::to_string(peaksOffset) + ". Contact us.",
-              __LINE__, __FUNCTION__, __FILE__);
+        spdlog::error("Something is wrong: " + std::to_string(indexA) +
+                          " vs. " + std::to_string(peaksOffset) +
+                          ". Contact us.",
+                      __LINE__, __FUNCTION__, __FILE__);
       if (indexB - 1 > peaksOffset || indexB <= 0)
-        error("Something is wrong: " + std::to_string(indexB) + " vs. " +
-                  std::to_string(peaksOffset) + ". Contact us.",
-              __LINE__, __FUNCTION__, __FILE__);
+        spdlog::error("Something is wrong: " + std::to_string(indexB) +
+                          " vs. " + std::to_string(peaksOffset) +
+                          ". Contact us.",
+                      __LINE__, __FUNCTION__, __FILE__);
 #endif
 
       // Different cases:
@@ -891,14 +896,15 @@ std::vector<std::pair<std::vector<int>, T>> pafVectorIntoPeopleVector(
         const auto indexScore1 = (aAssigned >= 0 ? indexScoreA : indexScoreB);
         const auto index1 = (aAssigned >= 0 ? indexA : indexB);
         if ((unsigned int)personVector.first.at(bodyPart1) != indexScore1)
-          error("Something is wrong: " +
-                    std::to_string((personVector.first[bodyPart1] - 2) / 3 -
-                                   bodyPart1 * peaksOffset) +
-                    " vs. " +
-                    std::to_string((indexScore1 - 2) / 3 -
-                                   bodyPart1 * peaksOffset) +
-                    " vs. " + std::to_string(index1) + ". Contact us.",
-                __LINE__, __FUNCTION__, __FILE__);
+          spdlog::error(
+              "Something is wrong: " +
+                  std::to_string((personVector.first[bodyPart1] - 2) / 3 -
+                                 bodyPart1 * peaksOffset) +
+                  " vs. " +
+                  std::to_string((indexScore1 - 2) / 3 -
+                                 bodyPart1 * peaksOffset) +
+                  " vs. " + std::to_string(index1) + ". Contact us.",
+              __LINE__, __FUNCTION__, __FILE__);
 #endif
         // If person with 1 does not have a 2 yet
         if (personVector.first[bodyPart2] == 0) {
@@ -977,7 +983,7 @@ std::vector<std::pair<std::vector<int>, T>> pafVectorIntoPeopleVector(
     // Return result
     return peopleVector;
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
     return {};
   }
 }
@@ -1062,10 +1068,10 @@ void removePeopleBelowThresholdsAndFillFaces(
       else if ((personCounter < 1 && numberBodyParts != 25 &&
                 numberBodyParts < 70) ||
                personCounter < 0)
-        error("Bad personCounter (" + std::to_string(personCounter) +
-                  "). Bug in this"
-                  " function if this happens.",
-              __LINE__, __FUNCTION__, __FILE__);
+        spdlog::error("Bad personCounter (" + std::to_string(personCounter) +
+                          "). Bug in this"
+                          " function if this happens.",
+                      __LINE__, __FUNCTION__, __FILE__);
     }
     // If no people found --> Repeat with maximizePositives = true
     // Result: Increased COCO mAP because we catch more foot-only images
@@ -1079,7 +1085,7 @@ void removePeopleBelowThresholdsAndFillFaces(
       //     iteration");
     }
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -1123,7 +1129,7 @@ void peopleVectorToPeopleArray(
       poseScores[person] = personPair.second * oneOverNumberBodyPartsAndPAFs;
     }
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 
@@ -1346,7 +1352,7 @@ void peopleVectorToPeopleArray(
 //         }
 //         catch (const std::exception& e)
 //         {
-//             error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+//             spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
 //         }
 //     }
 
@@ -1486,7 +1492,7 @@ void peopleVectorToPeopleArray(
 //         }
 //         catch (const std::exception& e)
 //         {
-//             error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+//             spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
 //             return std::array<T,3>{};
 //         }
 //     }
@@ -1610,7 +1616,7 @@ void peopleVectorToPeopleArray(
 //         }
 //         catch (const std::exception& e)
 //         {
-//             error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+//             spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
 //         }
 //     }
 
@@ -1640,9 +1646,10 @@ void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
     const auto numberBodyParts = 25;
     const auto numberBodyPartPairs = (unsigned int)(bodyPartPairs.size() / 2);
     if (numberBodyParts == 0)
-      error("Invalid value of numberBodyParts, it must be positive, not " +
-                std::to_string(numberBodyParts),
-            __LINE__, __FUNCTION__, __FILE__);
+      spdlog::error(
+          "Invalid value of numberBodyParts, it must be positive, not " +
+              std::to_string(numberBodyParts),
+          __LINE__, __FUNCTION__, __FILE__);
     // std::vector<std::pair<std::vector<int>, double>> refers to:
     //     - std::vector<int>: [body parts locations, #body parts found]
     //     - double: person subset score
@@ -1678,8 +1685,8 @@ void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
                               numberBodyPartPairs);
     // Experimental code
     if (poseModel == PoseModel::BODY_25D)
-      error("BODY_25D is an experimental branch which is not usable.", __LINE__,
-            __FUNCTION__, __FILE__);
+      spdlog::error("BODY_25D is an experimental branch which is not usable.",
+                    __LINE__, __FUNCTION__, __FILE__);
     //                 connectDistanceMultiStar(poseKeypoints, poseScores,
     //                 heatMapPtr, peaksPtr, poseModel, heatMapSize,
     //                                          maxPeaks, scaleFactor,
@@ -1691,7 +1698,7 @@ void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
     //                                     numberBodyParts,
     //                                     bodyPartPairs.size());
   } catch (const std::exception &e) {
-    error(e.what(), __LINE__, __FUNCTION__, __FILE__);
+    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
   }
 }
 

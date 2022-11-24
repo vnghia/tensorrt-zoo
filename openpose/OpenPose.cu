@@ -12,6 +12,7 @@
 #include "Trt.h"
 #include "cuda.cuh"
 #include "cuda.hpp"
+#include "spdlog/spdlog.h"
 
 #include "time.h"
 #include <cassert>
@@ -59,14 +60,9 @@ inline void *safeCudaMalloc(size_t memSize) {
   return deviceMem;
 }
 
-OpenPose::OpenPose(const std::string &prototxt, const std::string &caffeModel,
-                   const std::string &saveEngine,
-                   const std::vector<std::string> &outputBlobName,
-                   const std::vector<std::vector<float>> &calibratorData,
-                   int maxBatchSize, int runMode) {
+OpenPose::OpenPose(const std::string &saveEngine) {
   mNet = new Trt();
-  mNet->CreateEngine(prototxt, caffeModel, saveEngine, outputBlobName,
-                     maxBatchSize, runMode);
+  mNet->DeserializeEngine(saveEngine);
   MallocExtraMemory();
 }
 // TODO: release resource
@@ -158,7 +154,7 @@ void OpenPose::DoInference(std::vector<float> &inputData,
 }
 
 void OpenPose::MallocExtraMemory() {
-  mBatchSize = mNet->GetMaxBatchSize();
+  mBatchSize = 1;
 
   mpInputGpu = mNet->GetBindingPtr(0);
   mInputDataType = mNet->GetBindingDataType(0);
