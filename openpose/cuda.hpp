@@ -7,32 +7,33 @@
 #ifndef OPENPOSE_GPU_CUDA_HPP
 #define OPENPOSE_GPU_CUDA_HPP
 
-#include <utility> // std::pair
-#include <vector>
 #include <array>
 #include <iostream>
+#include <utility>  // std::pair
+#include <vector>
 
-namespace op
-{
-    
-    const auto CUDA_NUM_THREADS = 512u;
+namespace op {
 
-    void cudaCheck(const int line = -1, const std::string& function = "", const std::string& file = "");
+const auto CUDA_NUM_THREADS = 512u;
 
-    int getCudaGpuNumber();
+void cudaCheck(const int line = -1, const std::string& function = "",
+               const std::string& file = "");
 
-    inline unsigned int getNumberCudaBlocks(
-        const unsigned int totalRequired, const unsigned int numberCudaThreads = CUDA_NUM_THREADS)
-    {
-        return (totalRequired + numberCudaThreads - 1) / numberCudaThreads;
-    }
-    template <typename T>
-    void reorderAndNormalize(
-        T* targetPtr, const unsigned char* const srcPtr, const int width, const int height, const int channels);
+int getCudaGpuNumber();
 
-    template <typename T>
-    void uCharImageCast(unsigned char* targetPtr, const T* const srcPtr, const int volume);
-
+inline unsigned int getNumberCudaBlocks(
+    const unsigned int totalRequired,
+    const unsigned int numberCudaThreads = CUDA_NUM_THREADS) {
+  return (totalRequired + numberCudaThreads - 1) / numberCudaThreads;
 }
+template <typename T>
+void reorderAndNormalize(T* targetPtr, const unsigned char* const srcPtr,
+                         const int width, const int height, const int channels);
 
-#endif // OPENPOSE_GPU_CUDA_HPP
+template <typename T>
+void uCharImageCast(unsigned char* targetPtr, const T* const srcPtr,
+                    const int volume);
+
+}  // namespace op
+
+#endif  // OPENPOSE_GPU_CUDA_HPP

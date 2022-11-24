@@ -1,14 +1,14 @@
 cmake_minimum_required(VERSION 3.0)
 
 project(testopenpose)
-set( CMAKE_CXX_FLAGS " -std=c++11" )
 
 file(GLOB openpose_source
      *.cpp
      *.cu
      )
-cuda_add_executable(testopenpose ${openpose_source})
-target_compile_options(testopenpose PUBLIC -std=c++11 -Wall -Wfloat-conversion)
+add_executable(testopenpose ${openpose_source})
+target_compile_features(testopenpose PUBLIC cuda_std_11)
+target_compile_options(testopenpose PUBLIC -Wall -Wfloat-conversion)
 target_link_libraries(testopenpose tinytrt)
 target_link_libraries(testopenpose nvinfer)
 target_link_libraries(testopenpose nvinfer_plugin)
