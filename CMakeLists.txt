@@ -14,13 +14,12 @@ if (NOT OpenCV_FOUND)
     message(FATAL_ERROR "opencv not found")
 endif (NOT OpenCV_FOUND)
 
-include_directories(tiny-tensorrt)
+include(cmake/external/tiny_tensorrt.cmake)
+
 link_directories(/usr/lib/x86_64-linux-gnu)
 link_directories(lib/)
 
 find_library(CUDART cudart HINTS /usr/local/cuda/targets/x86_64-linux/lib/)
-
-add_subdirectory(tiny-tensorrt)
 
 add_subdirectory(openpose)
 
