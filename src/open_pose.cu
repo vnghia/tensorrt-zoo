@@ -138,7 +138,7 @@ void OpenPose::DoInference(std::vector<float> &inputData,
   result.resize(poseKeypoints.getVolume());
   // std::cout << "number of person: " << poseKeypoints.getVolume()/75 <<
   // std::endl;
-  for (int i = 0; i < poseKeypoints.getVolume(); i++) {
+  for (int i = 0; i < poseKeypoints.getVolume(); ++i) {
     if ((i + 1) % 3 == 0) {
       result[i] = poseKeypoints[i];
     } else {

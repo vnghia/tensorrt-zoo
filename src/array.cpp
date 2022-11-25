@@ -132,7 +132,7 @@ void Array<T>::reset(const std::vector<int>& sizes, const T value) {
 template <typename T>
 void Array<T>::setTo(const T value) {
   if (mVolume > 0) {
-    for (auto i = 0u; i < mVolume; i++) operator[](i) = value;
+    for (auto i = 0u; i < mVolume; ++i) operator[](i) = value;
   }
 }
 
@@ -206,7 +206,7 @@ const std::string Array<T>::toString() const {
   // Initial value
   std::string string{"Array<T>::toString():\n"};
   // Add each element
-  for (auto i = 0u; i < mVolume; i++) {
+  for (auto i = 0u; i < mVolume; ++i) {
     // Adding element separated by a space
     string += std::to_string(pData[i]) + " ";
     // Introduce an enter for each dimension change

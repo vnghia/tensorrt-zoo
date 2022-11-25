@@ -95,10 +95,10 @@ writeResultKernel(T *output, const int length, const int *const kernelPtr,
           T scoreAcc = 0.f;
           const auto dWidth = 3;
           const auto dHeight = 3;
-          for (auto dy = -dHeight; dy <= dHeight; dy++) {
+          for (auto dy = -dHeight; dy <= dHeight; ++dy) {
             const auto y = peakLocY + dy;
             if (0 <= y && y < height) {
-              for (auto dx = -dWidth; dx <= dWidth; dx++) {
+              for (auto dx = -dWidth; dx <= dWidth; ++dx) {
                 const auto x = peakLocX + dx;
                 if (0 <= x && x < width) {
                   const auto score = sourcePtrOffset[y * width + x];

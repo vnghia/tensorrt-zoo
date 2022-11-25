@@ -37,7 +37,7 @@ inline __device__ T process(const T *bodyPartA, const T *bodyPartB,
     auto count = 0;
     const auto vectorAToBXInLine = vectorAToBX / numberPointsInLine;
     const auto vectorAToBYInLine = vectorAToBY / numberPointsInLine;
-    for (auto lm = 0; lm < numberPointsInLine; lm++) {
+    for (auto lm = 0; lm < numberPointsInLine; ++lm) {
       const auto mX =
           min(heatmapWidth - 1, intRoundGPU(sX + lm * vectorAToBXInLine));
       const auto mY =
@@ -246,7 +246,7 @@ inline T getScoreAB(const int i, const int j, const T *const candidateAPtr,
     auto count = 0u;
     const auto vectorAToBXInLine = vectorAToBX / numberPointsInLine;
     const auto vectorAToBYInLine = vectorAToBY / numberPointsInLine;
-    for (auto lm = 0; lm < numberPointsInLine; lm++) {
+    for (auto lm = 0; lm < numberPointsInLine; ++lm) {
       const auto mX =
           fastMax(0, fastMin(heatMapSize.x - 1,
                              positiveIntRound(sX + lm * vectorAToBXInLine)));
@@ -278,7 +278,7 @@ void getKeypointCounter(
     const int minimum) {
   // Count keypoints
   auto keypointCounter = 0;
-  for (auto i = partFirst; i < partLast; i++)
+  for (auto i = partFirst; i < partLast; ++i)
     keypointCounter += (peopleVector[part].first.at(i) > 0);
   // If enough keypoints --> subtract them and keep them at least as big as
   // minimum
@@ -310,7 +310,7 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
   const auto peaksOffset = 3 * (maxPeaks + 1);
   const auto heatMapOffset = heatMapSize.area();
   // Iterate over it PAF connection, e.g., neck-nose, neck-Lshoulder, etc.
-  for (auto pairIndex = 0u; pairIndex < numberBodyPartPairs; pairIndex++) {
+  for (auto pairIndex = 0u; pairIndex < numberBodyPartPairs; ++pairIndex) {
     const auto bodyPartA = bodyPartPairs[2 * pairIndex];
     const auto bodyPartB = bodyPartPairs[2 * pairIndex + 1];
     const auto *candidateAPtr = peaksPtr + bodyPartA * peaksOffset;
@@ -331,7 +331,7 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
       {
         // Non-MPI
         if (numberBodyParts != 15) {
-          for (auto i = 1; i <= numberPeaksB; i++) {
+          for (auto i = 1; i <= numberPeaksB; ++i) {
             bool found = false;
             for (const auto &personVector : peopleVector) {
               const auto off = (int)bodyPartB * peaksOffset + i * 3 + 2;
@@ -355,7 +355,7 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
         }
         // MPI
         else {
-          for (auto i = 1; i <= numberPeaksB; i++) {
+          for (auto i = 1; i <= numberPeaksB; ++i) {
             std::vector<int> rowVector(vectorSize, 0);
             // Store the index
             rowVector[bodyPartB] = bodyPartB * peaksOffset + i * 3 + 2;
@@ -372,7 +372,7 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
       {
         // Non-MPI
         if (numberBodyParts != 15) {
-          for (auto i = 1; i <= numberPeaksA; i++) {
+          for (auto i = 1; i <= numberPeaksA; ++i) {
             bool found = false;
             const auto indexA = bodyPartA;
             for (const auto &personVector : peopleVector) {
@@ -396,7 +396,7 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
         }
         // MPI
         else {
-          for (auto i = 1; i <= numberPeaksA; i++) {
+          for (auto i = 1; i <= numberPeaksA; ++i) {
             std::vector<int> rowVector(vectorSize, 0);
             // Store the index
             rowVector[bodyPartA] = bodyPartA * peaksOffset + i * 3 + 2;
@@ -425,9 +425,9 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
             heatMapPtr +
             (numberBodyPartsAndBkg + mapIdx[2 * pairIndex + 1]) * heatMapOffset;
         // E.g., neck-nose connection. For each neck
-        for (auto i = 1; i <= numberPeaksA; i++) {
+        for (auto i = 1; i <= numberPeaksA; ++i) {
           // E.g., neck-nose connection. For each nose
-          for (auto j = 1; j <= numberPeaksB; j++) {
+          for (auto j = 1; j <= numberPeaksB; ++j) {
             // Initial PAF
             auto scoreAB =
                 getScoreAB(i, j, candidateAPtr, candidateBPtr, mapX, mapY,
@@ -445,10 +445,10 @@ createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
         const auto firstIndex =
             (int)pairIndex * pairScores.getSize(1) * pairScores.getSize(2);
         // E.g., neck-nose connection. For each neck
-        for (auto i = 0; i < numberPeaksA; i++) {
+        for (auto i = 0; i < numberPeaksA; ++i) {
           const auto iIndex = firstIndex + i * pairScores.getSize(2);
           // E.g., neck-nose connection. For each nose
-          for (auto j = 0; j < numberPeaksB; j++) {
+          for (auto j = 0; j < numberPeaksB; ++j) {
             const auto scoreAB = pairScores[iIndex + j];
 
             // E.g., neck-nose connection. If possible PAF between neck i,
@@ -588,7 +588,7 @@ pafPtrIntoVector(const Array<T> &pairScores, const T *const peaksPtr,
 
   // Get all PAF pairs in a single std::vector
   const auto peaksOffset = 3 * (maxPeaks + 1);
-  for (auto pairIndex = 0u; pairIndex < numberBodyPartPairs; pairIndex++) {
+  for (auto pairIndex = 0u; pairIndex < numberBodyPartPairs; ++pairIndex) {
     const auto bodyPartA = bodyPartPairs[2 * pairIndex];
     const auto bodyPartB = bodyPartPairs[2 * pairIndex + 1];
     const auto *candidateAPtr = peaksPtr + bodyPartA * peaksOffset;
@@ -598,10 +598,10 @@ pafPtrIntoVector(const Array<T> &pairScores, const T *const peaksPtr,
     const auto firstIndex =
         (int)pairIndex * pairScores.getSize(1) * pairScores.getSize(2);
     // E.g., neck-nose connection. For each neck
-    for (auto indexA = 0; indexA < numberPeaksA; indexA++) {
+    for (auto indexA = 0; indexA < numberPeaksA; ++indexA) {
       const auto iIndex = firstIndex + indexA * pairScores.getSize(2);
       // E.g., neck-nose connection. For each nose
-      for (auto indexB = 0; indexB < numberPeaksB; indexB++) {
+      for (auto indexB = 0; indexB < numberPeaksB; ++indexB) {
         const auto scoreAB = pairScores[iIndex + indexB];
 
         // E.g., neck-nose connection. If possible PAF between neck indexA,
@@ -750,7 +750,7 @@ std::vector<std::pair<std::vector<int>, T>> pafVectorIntoPeopleVector(
       // Complementary if and only if kA intersection kB = empty. I.e., no
       // common keypoints
       bool complementary = true;
-      for (auto part = 0u; part < numberBodyParts; part++) {
+      for (auto part = 0u; part < numberBodyParts; ++part) {
         if (person1[part] > 0 && person2[part] > 0) {
           complementary = false;
           break;
@@ -759,7 +759,7 @@ std::vector<std::pair<std::vector<int>, T>> pafVectorIntoPeopleVector(
       // If complementary, merge both people into 1
       if (complementary) {
         // Update keypoint indexes
-        for (auto part = 0u; part < numberBodyParts; part++)
+        for (auto part = 0u; part < numberBodyParts; ++part)
           if (person1[part] == 0)
             person1[part] = person2[part];
         // Update number keypoints
@@ -817,7 +817,7 @@ void removePeopleBelowThresholdsAndFillFaces(
   std::vector<int> faceInvalidSubsetIndexes;
   faceInvalidSubsetIndexes.reserve(peopleVector.size());
   // For each person candidate
-  for (auto person = 0u; person < peopleVector.size(); person++) {
+  for (auto person = 0u; person < peopleVector.size(); ++person) {
     auto personCounter = peopleVector[person].first.back();
     // Analog for hand/face keypoints
     if (numberBodyParts >= 135) {
@@ -908,11 +908,11 @@ void peopleVectorToPeopleArray(
   const auto oneOverNumberBodyPartsAndPAFs =
       1 / T(numberBodyParts + numberBodyPartPairs);
   // For each person
-  for (auto person = 0u; person < validSubsetIndexes.size(); person++) {
+  for (auto person = 0u; person < validSubsetIndexes.size(); ++person) {
     const auto &personPair = peopleVector[validSubsetIndexes[person]];
     const auto &personVector = personPair.first;
     // For each body part
-    for (auto bodyPart = 0u; bodyPart < numberBodyParts; bodyPart++) {
+    for (auto bodyPart = 0u; bodyPart < numberBodyParts; ++bodyPart) {
       const auto baseOffset = (person * numberBodyParts + bodyPart) * 3;
       const auto bodyPartIndex = personVector[bodyPart];
       if (bodyPartIndex > 0) {

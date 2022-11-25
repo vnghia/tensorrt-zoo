@@ -118,7 +118,7 @@ inline __device__ T bicubicInterpolate(const T *const sourcePtr,
                       widthSource, heightSource);
 
   T temp[4];
-  for (unsigned char i = 0; i < 4; i++) {
+  for (unsigned char i = 0; i < 4; ++i) {
     const auto offset = yIntArray[i] * widthSourcePtr;
     temp[i] = cubicInterpolate(
         sourcePtr[offset + xIntArray[0]], sourcePtr[offset + xIntArray[1]],
@@ -141,7 +141,7 @@ inline __device__ T bicubicInterpolate(const unsigned char *const sourcePtr,
                       widthSource, heightSource);
 
   T temp[4];
-  for (unsigned char i = 0; i < 4; i++) {
+  for (unsigned char i = 0; i < 4; ++i) {
     const auto offset = yIntArray[i] * widthSourcePtr;
     temp[i] = cubicInterpolate(T(sourcePtr[offset + xIntArray[0]]),
                                T(sourcePtr[offset + xIntArray[1]]),
@@ -165,7 +165,7 @@ inline __device__ T bicubicInterpolate8Times(const T *const sourcePtr,
       ySource - fastTruncateCuda(int(floor(ySource)), 0, heightSource - 1);
 
   T temp[4];
-  for (unsigned char i = 0; i < 4; i++) {
+  for (unsigned char i = 0; i < 4; ++i) {
     const auto offset =
         5 * (i + (threadIdxY > 3 ? 1 : 0)) + (threadIdxX > 3 ? 1 : 0);
     temp[i] =
