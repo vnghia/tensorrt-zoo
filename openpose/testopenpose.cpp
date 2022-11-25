@@ -12,50 +12,14 @@
 #include "opencv2/opencv.hpp"
 #include "time.h"
 
-class InputParser {
- public:
-  InputParser(int& argc, char** argv) {
-    for (int i = 1; i < argc; ++i) this->tokens.push_back(std::string(argv[i]));
-  }
-  /// @author iain
-  const std::string& getCmdOption(const std::string& option) const {
-    std::vector<std::string>::const_iterator itr;
-    itr = std::find(this->tokens.begin(), this->tokens.end(), option);
-    if (itr != this->tokens.end() && ++itr != this->tokens.end()) {
-      return *itr;
-    }
-    static const std::string empty_string("");
-    return empty_string;
-  }
-  /// @author iain
-  bool cmdOptionExists(const std::string& option) const {
-    return std::find(this->tokens.begin(), this->tokens.end(), option) !=
-           this->tokens.end();
-  }
-
- private:
-  std::vector<std::string> tokens;
-};
-
 int main(int argc, char** argv) {
-  std::cout << "usage: path/to/testopenpose --prototxt path/to/prototxt "
-               "--caffemodel path/to/caffemodel/ --save_engine "
-               "path/to/save_engin --input path/to/input/img --run_mode 0/1/2"
-            << std::endl;
-  InputParser cmdparams(argc, argv);
-  const std::string& prototxt = cmdparams.getCmdOption("--prototxt");
-  const std::string& caffemodel = cmdparams.getCmdOption("--caffemodel");
-  const std::string& save_engine = cmdparams.getCmdOption("--save_engine");
-  const std::string& img_name = cmdparams.getCmdOption("--input");
-  int run_mode = std::stoi(cmdparams.getCmdOption("--run_mode"));
-  int H = std::stoi(cmdparams.getCmdOption("--h"));
-  int W = std::stoi(cmdparams.getCmdOption("--w"));
-
-  cv::Mat img = cv::imread(img_name);
+  cv::Mat img = cv::imread(argv[1]);
   if (img.empty()) {
     std::cout << "error: can not read image" << std::endl;
     return -1;
   }
+  int W = std::atoi(argv[2]);
+  int H = std::atoi(argv[3]);
   cv::cvtColor(img, img, cv::COLOR_BGR2RGB);
   cv::resize(img, img, cv::Size(W, H));
 
@@ -74,29 +38,14 @@ int main(int argc, char** argv) {
   }
   std::vector<float> result;
 
-  std::vector<std::string> outputBlobname{"net_output"};
-  std::vector<std::vector<float>> calibratorData;
-  calibratorData.resize(3);
-  for (size_t i = 0; i < calibratorData.size(); i++) {
-    calibratorData[i].resize(3 * H * W);
-    for (size_t j = 0; j < calibratorData[i].size(); j++) {
-      calibratorData[i][j] = 0.05;
-    }
-  }
-  int maxBatchSize = N;
+  OpenPose* openpose = new OpenPose(argv[4]);
 
-  OpenPose* openpose = new OpenPose(save_engine);
-
-  int i = 0;
-  while (1) {
-    clock_t start = clock();
-    openpose->DoInference(inputData, result);
-    clock_t end = clock();
-    std::cout << "inference Time : "
-              << ((double)(end - start) / CLOCKS_PER_SEC) * 1000 << " ms"
-              << std::endl;
-    i++;
-  }
+  clock_t start = clock();
+  openpose->DoInference(inputData, result);
+  clock_t end = clock();
+  std::cout << "inference Time : "
+            << ((double)(end - start) / CLOCKS_PER_SEC) * 1000 << " ms"
+            << std::endl;
 
   cv::cvtColor(img, img, cv::COLOR_RGB2BGR);
   for (size_t i = 0; i < result.size() / 3; i++) {
