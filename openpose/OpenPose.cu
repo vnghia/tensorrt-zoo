@@ -159,7 +159,11 @@ void OpenPose::MallocExtraMemory() {
   mpInputGpu = mNet->GetBindingPtr(0);
   mInputDataType = mNet->GetBindingDataType(0);
   nvinfer1::Dims inputDims = mNet->GetBindingDims(0);
-  mInputDims = nvinfer1::Dims3(inputDims.d[0], inputDims.d[1], inputDims.d[2]);
+
+  int offset = inputDims.nbDims == 4 ? 1 : 0;
+
+  mInputDims = nvinfer1::Dims3(inputDims.d[offset], inputDims.d[offset + 1],
+                               inputDims.d[offset + 2]);
   mInputSize = mNet->GetBindingSize(0);
 
   std::cout << "=====>malloc extra memory for openpose..." << std::endl;
@@ -168,7 +172,8 @@ void OpenPose::MallocExtraMemory() {
   nvinfer1::Dims heatMapDims = mNet->GetBindingDims(1);
   std::cout << "heatmap Dims" << heatMapDims.nbDims << std::endl;
   mHeatMapDims =
-      nvinfer1::Dims3(heatMapDims.d[0], heatMapDims.d[1], heatMapDims.d[2]);
+      nvinfer1::Dims3(heatMapDims.d[offset], heatMapDims.d[offset + 1],
+                      heatMapDims.d[offset + 2]);
   std::cout << "heatmap size: " << mBatchSize << " " << mHeatMapDims.d[0] << " "
             << mHeatMapDims.d[1] << " " << mHeatMapDims.d[2] << std::endl;
   mHeatMapSize = mBatchSize * mHeatMapDims.d[0] * mHeatMapDims.d[1] *
