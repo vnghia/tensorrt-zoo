@@ -137,59 +137,48 @@ template <typename T>
 void nmsGpu(T *targetPtr, int *kernelPtr, const T *const sourcePtr,
             const T threshold, const std::array<int, 4> &targetSize,
             const std::array<int, 4> &sourceSize, const Point<T> &offset) {
-  try {
-    const auto num = sourceSize[0];
-    const auto height = sourceSize[2];
-    const auto width = sourceSize[3];
-    const auto channels = targetSize[1];
-    const auto maxPeaks = targetSize[2] - 1;
-    const auto imageOffset = height * width;
-    const auto offsetTarget = (maxPeaks + 1) * targetSize[3];
+  const auto num = sourceSize[0];
+  const auto height = sourceSize[2];
+  const auto width = sourceSize[3];
+  const auto channels = targetSize[1];
+  const auto maxPeaks = targetSize[2] - 1;
+  const auto imageOffset = height * width;
+  const auto offsetTarget = (maxPeaks + 1) * targetSize[3];
 
-    const dim3 threadsPerBlock2D{THREADS_PER_BLOCK_1D, THREADS_PER_BLOCK_1D};
-    const dim3 numBlocks2D{getNumberCudaBlocks(width, threadsPerBlock2D.x),
-                           getNumberCudaBlocks(height, threadsPerBlock2D.y)};
-    const dim3 threadsPerBlock1D{THREADS_PER_BLOCK};
-    const dim3 numBlocks1D{
-        getNumberCudaBlocks(imageOffset, threadsPerBlock1D.x)};
+  const dim3 threadsPerBlock2D{THREADS_PER_BLOCK_1D, THREADS_PER_BLOCK_1D};
+  const dim3 numBlocks2D{getNumberCudaBlocks(width, threadsPerBlock2D.x),
+                         getNumberCudaBlocks(height, threadsPerBlock2D.y)};
+  const dim3 threadsPerBlock1D{THREADS_PER_BLOCK};
+  const dim3 numBlocks1D{getNumberCudaBlocks(imageOffset, threadsPerBlock1D.x)};
 
-    // Optimized code: Running 3 kernels in total
-    // This returns kernelPtr, a binary array with 0s & 1s. 1s in the local
-    // maximum positions (size = size(sourcePtrOffsetted)) Example result:
-    // [0,0,0,0,1,0,0,0,0,1,0,0,0,0] time = 1.24 ms
-    const dim3 threadsPerBlockRegister{THREADS_PER_BLOCK_1D,
-                                       THREADS_PER_BLOCK_1D, 1};
-    const dim3 numBlocksRegister{
-        getNumberCudaBlocks(width, threadsPerBlockRegister.x),
-        getNumberCudaBlocks(height, threadsPerBlockRegister.y),
-        getNumberCudaBlocks(num * channels, threadsPerBlockRegister.z)};
-    nmsRegisterKernel<<<numBlocksRegister, threadsPerBlockRegister>>>(
-        kernelPtr, sourcePtr, width, height, threshold);
-    // This modifies kernelPtrOffsetted, now it indicates the local maximum
-    // indexes Format: 0,0,0,1,1,1,1,2,2,2,... First maximum at index 2, second
-    // at 6, etc... Example result: [0,0,0,0,0,1,1,1,1,1,2,2,2,2] time = 2.71 ms
-    auto kernelThrustPtr = thrust::device_pointer_cast(kernelPtr);
-    thrust::exclusive_scan(kernelThrustPtr,
-                           kernelThrustPtr + num * channels * imageOffset,
-                           kernelThrustPtr);
-    // This returns targetPtrOffsetted, with the NMS applied over it
-    // time = 1.10 ms
-    const dim3 threadsPerBlockWrite{THREADS_PER_BLOCK, 1};
-    const dim3 numBlocksWrite{
-        getNumberCudaBlocks(imageOffset, threadsPerBlockWrite.x),
-        getNumberCudaBlocks(num * channels, threadsPerBlockWrite.z)};
-    writeResultKernel<<<numBlocksWrite, threadsPerBlockWrite>>>(
-        targetPtr, imageOffset, kernelPtr, sourcePtr, width, height, maxPeaks,
-        offset.x, offset.y, offsetTarget);
-
-    // // Profiling code
-    // OP_CUDA_PROFILE_END(timeNormalize2, 1e3, REPS);
-    // log("  NMS1(or)=" + std::to_string(timeNormalize1) + "ms");
-    // log("  NMS2(1k)=" + std::to_string(timeNormalize2) + "ms");
-
-  } catch (const std::exception &e) {
-    spdlog::error(e.what(), __LINE__, __FUNCTION__, __FILE__);
-  }
+  // Optimized code: Running 3 kernels in total
+  // This returns kernelPtr, a binary array with 0s & 1s. 1s in the local
+  // maximum positions (size = size(sourcePtrOffsetted)) Example result:
+  // [0,0,0,0,1,0,0,0,0,1,0,0,0,0] time = 1.24 ms
+  const dim3 threadsPerBlockRegister{THREADS_PER_BLOCK_1D, THREADS_PER_BLOCK_1D,
+                                     1};
+  const dim3 numBlocksRegister{
+      getNumberCudaBlocks(width, threadsPerBlockRegister.x),
+      getNumberCudaBlocks(height, threadsPerBlockRegister.y),
+      getNumberCudaBlocks(num * channels, threadsPerBlockRegister.z)};
+  nmsRegisterKernel<<<numBlocksRegister, threadsPerBlockRegister>>>(
+      kernelPtr, sourcePtr, width, height, threshold);
+  // This modifies kernelPtrOffsetted, now it indicates the local maximum
+  // indexes Format: 0,0,0,1,1,1,1,2,2,2,... First maximum at index 2, second
+  // at 6, etc... Example result: [0,0,0,0,0,1,1,1,1,1,2,2,2,2] time = 2.71 ms
+  auto kernelThrustPtr = thrust::device_pointer_cast(kernelPtr);
+  thrust::exclusive_scan(kernelThrustPtr,
+                         kernelThrustPtr + num * channels * imageOffset,
+                         kernelThrustPtr);
+  // This returns targetPtrOffsetted, with the NMS applied over it
+  // time = 1.10 ms
+  const dim3 threadsPerBlockWrite{THREADS_PER_BLOCK, 1};
+  const dim3 numBlocksWrite{
+      getNumberCudaBlocks(imageOffset, threadsPerBlockWrite.x),
+      getNumberCudaBlocks(num * channels, threadsPerBlockWrite.z)};
+  writeResultKernel<<<numBlocksWrite, threadsPerBlockWrite>>>(
+      targetPtr, imageOffset, kernelPtr, sourcePtr, width, height, maxPeaks,
+      offset.x, offset.y, offsetTarget);
 }
 
 template void nmsGpu(float *targetPtr, int *kernelPtr,
