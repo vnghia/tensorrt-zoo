@@ -1,3 +1,5 @@
+#pragma once
+
 #define COMPILE_TEMPLATE_BASIC_TYPES_CLASS(className) \
   COMPILE_TEMPLATE_BASIC_TYPES(className, class)
 #define COMPILE_TEMPLATE_BASIC_TYPES_STRUCT(className) \

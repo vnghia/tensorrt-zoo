@@ -1,18 +1,11 @@
-/*
- * @Author: zerollzeng
- * @Date: 2019-10-10 18:07:54
- * @LastEditors: zerollzeng
- * @LastEditTime: 2019-10-16 09:07:41
- */
-#ifndef OPENPOSE_GPU_CUDA_HPP
-#define OPENPOSE_GPU_CUDA_HPP
+#pragma once
 
 #include <array>
 #include <iostream>
 #include <utility>  // std::pair
 #include <vector>
 
-namespace op {
+namespace openposert {
 
 const auto CUDA_NUM_THREADS = 512u;
 
@@ -34,6 +27,4 @@ template <typename T>
 void uCharImageCast(unsigned char* targetPtr, const T* const srcPtr,
                     const int volume);
 
-}  // namespace op
-
-#endif  // OPENPOSE_GPU_CUDA_HPP
+}  // namespace openposert

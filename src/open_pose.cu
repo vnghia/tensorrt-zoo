@@ -1,17 +1,11 @@
-/*
- * @Author: zerollzeng
- * @Date: 2019-10-15 14:31:04
- * @LastEditors: zerollzeng
- * @LastEditTime: 2019-12-04 19:43:26
- */
-#include "BodyPartConnector.hpp"
-#include "OpenPose.hpp"
-#include "Point.hpp"
-#include "PoseNMS.hpp"
-#include "ResizeAndMerge.hpp"
 #include "Trt.h"
-#include "cuda.cuh"
-#include "cuda.hpp"
+#include "openposert/body_part_connector.hpp"
+#include "openposert/cuda.cuh"
+#include "openposert/cuda.hpp"
+#include "openposert/open_pose.hpp"
+#include "openposert/point.hpp"
+#include "openposert/pose_nms.hpp"
+#include "openposert/resize_and_merge.hpp"
 #include "spdlog/spdlog.h"
 
 #include "time.h"
@@ -19,7 +13,6 @@
 #include <cstring>
 #include <memory>
 
-#include <NvCaffeParser.h>
 #include <NvInfer.h>
 #include <array>
 
@@ -34,6 +27,8 @@
     }                                                                          \
   }
 #endif
+
+namespace openposert {
 
 inline unsigned int getElementSize(nvinfer1::DataType t) {
   switch (t) {
@@ -110,10 +105,10 @@ void OpenPose::DoInference(std::vector<float> &inputData,
     int heightTarget = mResizeMapDims.d[1];
     const dim3 threadsPerBlock{16, 16, 1};
     const dim3 numBlocks{
-        op::getNumberCudaBlocks(widthTarget, threadsPerBlock.x),
-        op::getNumberCudaBlocks(heightTarget, threadsPerBlock.y),
-        op::getNumberCudaBlocks(mResizeMapDims.d[0], threadsPerBlock.z)};
-    op::resizeKernel<<<numBlocks, threadsPerBlock>>>(
+        getNumberCudaBlocks(widthTarget, threadsPerBlock.x),
+        getNumberCudaBlocks(heightTarget, threadsPerBlock.y),
+        getNumberCudaBlocks(mResizeMapDims.d[0], threadsPerBlock.z)};
+    resizeKernel<<<numBlocks, threadsPerBlock>>>(
         (float *)mpResizeMapGpu, (float *)mpHeatMapGpu, widthSouce,
         heightSource, widthTarget, heightTarget);
     CUDA_CHECK(cudaMemcpy(mpResizeMapCpu, mpResizeMapGpu, mResizeMapSize,
@@ -125,21 +120,20 @@ void OpenPose::DoInference(std::vector<float> &inputData,
                                  mPeaksVector};
   std::array<int, 4> sourceSize2{mBatchSize, mResizeMapDims.d[0],
                                  mResizeMapDims.d[1], mResizeMapDims.d[2]};
-  op::Point<float> offset = op::Point<float>(0.5, 0.5);
-  op::nmsGpu((float *)mpPeaksGpu, (int *)mpKernelGpu, (float *)mpResizeMapGpu,
-             mThreshold, targetSize2, sourceSize2, offset);
+  Point<float> offset = Point<float>(0.5, 0.5);
+  nmsGpu((float *)mpPeaksGpu, (int *)mpKernelGpu, (float *)mpResizeMapGpu,
+         mThreshold, targetSize2, sourceSize2, offset);
   CUDA_CHECK(cudaMemcpyAsync(mpPeaksCpu, mpPeaksGpu, mPeaksSize,
                              cudaMemcpyDeviceToHost, 0));
 
   // bodypart connect
   Array<float> poseKeypoints;
   Array<float> poseScores;
-  op::Point<int> resizeMapSize =
-      op::Point<int>(mResizeMapDims.d[2], mResizeMapDims.d[1]);
-  op::connectBodyPartsCpu(poseKeypoints, poseScores, mpResizeMapCpu, mpPeaksCpu,
-                          op::PoseModel::BODY_25, resizeMapSize, mMaxPerson,
-                          mInterMinAboveThreshold, mInterThreshold,
-                          mMinSubsetCnt, mMinSubsetScore, 1.f);
+  Point<int> resizeMapSize =
+      Point<int>(mResizeMapDims.d[2], mResizeMapDims.d[1]);
+  connectBodyPartsCpu(poseKeypoints, poseScores, mpResizeMapCpu, mpPeaksCpu,
+                      resizeMapSize, mMaxPerson, mInterMinAboveThreshold,
+                      mInterThreshold, mMinSubsetCnt, mMinSubsetScore, 1.f);
 
   result.resize(poseKeypoints.getVolume());
   // std::cout << "number of person: " << poseKeypoints.getVolume()/75 <<
@@ -222,3 +216,5 @@ void OpenPose::MallocExtraMemory() {
   std::cout << "allocate peaks host and device memory done" << std::endl;
   std::cout << "=====> malloc extra memory done" << std::endl;
 }
+
+} // namespace openposert

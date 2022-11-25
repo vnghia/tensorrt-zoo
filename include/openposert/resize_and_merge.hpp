@@ -1,18 +1,11 @@
-/*
- * @Author: zerollzeng
- * @Date: 2019-10-10 18:07:54
- * @LastEditors: zerollzeng
- * @LastEditTime: 2019-10-10 18:07:54
- */
-#ifndef RESIZE_AND_MERGE_HPP
-#define RESIZE_AND_MERGE_HPP
+#pragma once
 
 #include <array>
 #include <vector>
 
 #include "cuda_runtime.h"
 
-namespace op {
+namespace openposert {
 
 template <typename T>
 __global__ void resizeKernel(T* targetPtr, const T* const sourcePtr,
@@ -56,5 +49,5 @@ void resizeAndPadRbgGpu(T* targetPtr, const unsigned char* const srcPtr,
                         const int sourceWidth, const int sourceHeight,
                         const int targetWidth, const int targetHeight,
                         const T scaleFactor);
-}  // namespace op
-#endif
+
+}  // namespace openposert

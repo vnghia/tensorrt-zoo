@@ -1,10 +1,11 @@
-#include "ResizeAndMerge.hpp"
-#include "cuda.cuh"
-#include "cuda.hpp"
+#include "openposert/cuda.cuh"
+#include "openposert/cuda.hpp"
+#include "openposert/resize_and_merge.hpp"
 #include "spdlog/spdlog.h"
 #include "utils.h"
 
-namespace op {
+namespace openposert {
+
 const auto THREADS_PER_BLOCK = 256u;
 const auto THREADS_PER_BLOCK_1D = 16u;
 
@@ -632,4 +633,5 @@ template void resizeAndPadRbgGpu(double *targetPtr,
                                  const int widthSource, const int heightSource,
                                  const int widthTarget, const int heightTarget,
                                  const double scaleFactor);
-} // namespace op
+
+} // namespace openposert

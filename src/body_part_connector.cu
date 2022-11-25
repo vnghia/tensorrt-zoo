@@ -1,11 +1,13 @@
-#include "BodyPartConnector.hpp"
-#include "FastMath.hpp"
-#include "cuda.hpp"
+#include "openposert/body_part_connector.hpp"
+#include "openposert/cuda.hpp"
+#include "openposert/fast_math.hpp"
 #include "spdlog/spdlog.h"
 #include "utils.h"
+
 #include <set>
 
-namespace op {
+namespace openposert {
+
 template <typename T> inline __device__ int intRoundGPU(const T a) {
   return int(a + T(0.5));
 }
@@ -162,7 +164,6 @@ pafScoreKernel(T *pairScoresPtr, const T *const heatMapPtr,
 template <typename T>
 void connectBodyPartsGpu(Array<T> &poseKeypoints, Array<T> &poseScores,
                          const T *const heatMapGpuPtr, const T *const peaksPtr,
-                         const PoseModel poseModel,
                          const Point<int> &heatMapSize, const int maxPeaks,
                          const T interMinAboveThreshold, const T interThreshold,
                          const int minSubsetCnt, const T minSubsetScore,
@@ -280,10 +281,9 @@ void connectBodyPartsGpu(Array<T> &poseKeypoints, Array<T> &poseScores,
 template void connectBodyPartsGpu(
     Array<float> &poseKeypoints, Array<float> &poseScores,
     const float *const heatMapGpuPtr, const float *const peaksPtr,
-    const PoseModel poseModel, const Point<int> &heatMapSize,
-    const int maxPeaks, const float interMinAboveThreshold,
-    const float interThreshold, const int minSubsetCnt,
-    const float minSubsetScore, const float scaleFactor,
+    const Point<int> &heatMapSize, const int maxPeaks,
+    const float interMinAboveThreshold, const float interThreshold,
+    const int minSubsetCnt, const float minSubsetScore, const float scaleFactor,
     const bool maximizePositives, Array<float> pairScoresCpu,
     float *pairScoresGpuPtr, const unsigned int *const bodyPartPairsGpuPtr,
     const unsigned int *const mapIdxGpuPtr, const float *const peaksGpuPtr,
@@ -291,12 +291,12 @@ template void connectBodyPartsGpu(
 template void connectBodyPartsGpu(
     Array<double> &poseKeypoints, Array<double> &poseScores,
     const double *const heatMapGpuPtr, const double *const peaksPtr,
-    const PoseModel poseModel, const Point<int> &heatMapSize,
-    const int maxPeaks, const double interMinAboveThreshold,
-    const double interThreshold, const int minSubsetCnt,
-    const double minSubsetScore, const double scaleFactor,
-    const bool maximizePositives, Array<double> pairScoresCpu,
-    double *pairScoresGpuPtr, const unsigned int *const bodyPartPairsGpuPtr,
+    const Point<int> &heatMapSize, const int maxPeaks,
+    const double interMinAboveThreshold, const double interThreshold,
+    const int minSubsetCnt, const double minSubsetScore,
+    const double scaleFactor, const bool maximizePositives,
+    Array<double> pairScoresCpu, double *pairScoresGpuPtr,
+    const unsigned int *const bodyPartPairsGpuPtr,
     const unsigned int *const mapIdxGpuPtr, const double *const peaksGpuPtr,
     const double defaultNmsThreshold);
 
@@ -436,19 +436,15 @@ void getKeypointCounter(
 // }
 
 template <typename T>
-std::vector<std::pair<std::vector<int>, T>> createPeopleVector(
-    const T *const heatMapPtr, const T *const peaksPtr,
-    const PoseModel poseModel, const Point<int> &heatMapSize,
-    const int maxPeaks, const T interThreshold, const T interMinAboveThreshold,
-    const std::vector<unsigned int> &bodyPartPairs,
-    const unsigned int numberBodyParts, const unsigned int numberBodyPartPairs,
-    const Array<T> &pairScores) {
+std::vector<std::pair<std::vector<int>, T>>
+createPeopleVector(const T *const heatMapPtr, const T *const peaksPtr,
+                   const Point<int> &heatMapSize, const int maxPeaks,
+                   const T interThreshold, const T interMinAboveThreshold,
+                   const std::vector<unsigned int> &bodyPartPairs,
+                   const unsigned int numberBodyParts,
+                   const unsigned int numberBodyPartPairs,
+                   const Array<T> &pairScores) {
   try {
-    if (poseModel != PoseModel::BODY_25 && poseModel != PoseModel::COCO_18 &&
-        poseModel != PoseModel::MPI_15 && poseModel != PoseModel::MPI_15_4)
-      spdlog::error("Model not implemented for CPU body connector.", __LINE__,
-                    __FUNCTION__, __FILE__);
-
     // std::vector<std::pair<std::vector<int>, double>> refers to:
     //     - std::vector<int>: [body parts locations, #body parts found]
     //     - double: person subset score
@@ -1623,7 +1619,6 @@ void peopleVectorToPeopleArray(
 template <typename T>
 void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
                          const T *const heatMapPtr, const T *const peaksPtr,
-                         const PoseModel poseModel,
                          const Point<int> &heatMapSize, const int maxPeaks,
                          const T interMinAboveThreshold, const T interThreshold,
                          const int minSubsetCnt, const T minSubsetScore,
@@ -1654,8 +1649,8 @@ void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
     //     - std::vector<int>: [body parts locations, #body parts found]
     //     - double: person subset score
     auto peopleVector =
-        createPeopleVector(heatMapPtr, peaksPtr, poseModel, heatMapSize,
-                           maxPeaks - 1, interThreshold, interMinAboveThreshold,
+        createPeopleVector(heatMapPtr, peaksPtr, heatMapSize, maxPeaks - 1,
+                           interThreshold, interMinAboveThreshold,
                            bodyPartPairs, numberBodyParts, numberBodyPartPairs);
     // std::cout << "people vector: " << peopleVector.size() << std::endl;
     // for(int i=0;i<peopleVector.size(); i++) {
@@ -1683,10 +1678,7 @@ void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
                               peopleVector, validSubsetIndexes, peaksPtr,
                               numberPeople, numberBodyParts,
                               numberBodyPartPairs);
-    // Experimental code
-    if (poseModel == PoseModel::BODY_25D)
-      spdlog::error("BODY_25D is an experimental branch which is not usable.",
-                    __LINE__, __FUNCTION__, __FILE__);
+
     //                 connectDistanceMultiStar(poseKeypoints, poseScores,
     //                 heatMapPtr, peaksPtr, poseModel, heatMapSize,
     //                                          maxPeaks, scaleFactor,
@@ -1705,39 +1697,34 @@ void connectBodyPartsCpu(Array<T> &poseKeypoints, Array<T> &poseScores,
 template void
 connectBodyPartsCpu(Array<float> &poseKeypoints, Array<float> &poseScores,
                     const float *const heatMapPtr, const float *const peaksPtr,
-                    const PoseModel poseModel, const Point<int> &heatMapSize,
-                    const int maxPeaks, const float interMinAboveThreshold,
+                    const Point<int> &heatMapSize, const int maxPeaks,
+                    const float interMinAboveThreshold,
                     const float interThreshold, const int minSubsetCnt,
                     const float minSubsetScore, const float scaleFactor,
                     const bool maximizePositives);
 template void
 connectBodyPartsCpu(Array<double> &poseKeypoints, Array<double> &poseScores,
                     const double *const heatMapPtr,
-                    const double *const peaksPtr, const PoseModel poseModel,
-                    const Point<int> &heatMapSize, const int maxPeaks,
-                    const double interMinAboveThreshold,
+                    const double *const peaksPtr, const Point<int> &heatMapSize,
+                    const int maxPeaks, const double interMinAboveThreshold,
                     const double interThreshold, const int minSubsetCnt,
                     const double minSubsetScore, const double scaleFactor,
                     const bool maximizePositives);
 
-template std::vector<std::pair<std::vector<int>, float>>
-createPeopleVector(const float *const heatMapPtr, const float *const peaksPtr,
-                   const PoseModel poseModel, const Point<int> &heatMapSize,
-                   const int maxPeaks, const float interThreshold,
-                   const float interMinAboveThreshold,
-                   const std::vector<unsigned int> &bodyPartPairs,
-                   const unsigned int numberBodyParts,
-                   const unsigned int numberBodyPartPairs,
-                   const Array<float> &precomputedPAFs);
-template std::vector<std::pair<std::vector<int>, double>>
-createPeopleVector(const double *const heatMapPtr, const double *const peaksPtr,
-                   const PoseModel poseModel, const Point<int> &heatMapSize,
-                   const int maxPeaks, const double interThreshold,
-                   const double interMinAboveThreshold,
-                   const std::vector<unsigned int> &bodyPartPairs,
-                   const unsigned int numberBodyParts,
-                   const unsigned int numberBodyPartPairs,
-                   const Array<double> &precomputedPAFs);
+template std::vector<std::pair<std::vector<int>, float>> createPeopleVector(
+    const float *const heatMapPtr, const float *const peaksPtr,
+    const Point<int> &heatMapSize, const int maxPeaks,
+    const float interThreshold, const float interMinAboveThreshold,
+    const std::vector<unsigned int> &bodyPartPairs,
+    const unsigned int numberBodyParts, const unsigned int numberBodyPartPairs,
+    const Array<float> &precomputedPAFs);
+template std::vector<std::pair<std::vector<int>, double>> createPeopleVector(
+    const double *const heatMapPtr, const double *const peaksPtr,
+    const Point<int> &heatMapSize, const int maxPeaks,
+    const double interThreshold, const double interMinAboveThreshold,
+    const std::vector<unsigned int> &bodyPartPairs,
+    const unsigned int numberBodyParts, const unsigned int numberBodyPartPairs,
+    const Array<double> &precomputedPAFs);
 
 template void removePeopleBelowThresholdsAndFillFaces(
     std::vector<int> &validSubsetIndexes, int &numberPeople,
@@ -1791,4 +1778,5 @@ pafVectorIntoPeopleVector(
     const double *const peaksPtr, const int maxPeaks,
     const std::vector<unsigned int> &bodyPartPairs,
     const unsigned int numberBodyParts);
-} // namespace op
+
+} // namespace openposert

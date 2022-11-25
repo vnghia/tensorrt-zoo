@@ -1,12 +1,12 @@
-#ifndef OPENPOSE_GPU_CUDA_HU
-#define OPENPOSE_GPU_CUDA_HU
+#pragma once
 
 // Note: This class should only be included if CUDA is enabled
 
 #include "cuda_runtime.h"
 #include <cuda.h>
 
-namespace op {
+namespace openposert {
+
 // VERY IMPORTANT: These fast functions does NOT work for negative integer
 // numbers. E.g., positiveIntRound(-180.f) = -179.
 
@@ -190,6 +190,4 @@ inline __device__ void addColorWeighted(T &colorR, T &colorG, T &colorB,
   colorB = addWeighted(colorB, colorToAdd[2], alphaColorToAdd);
 }
 
-} // namespace op
-
-#endif // OPENPOSE_GPU_CUDA_HU
+} // namespace openposert

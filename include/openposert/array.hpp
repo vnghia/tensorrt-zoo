@@ -1,10 +1,9 @@
-#ifndef OPENPOSE_CORE_ARRAY_HPP
-#define OPENPOSE_CORE_ARRAY_HPP
+#pragma once
 
-#include <memory>  // std::shared_ptr
+#include <memory>
 #include <vector>
 
-#define UNUSED(unusedVariable) (void)(unusedVariable)
+namespace openposert {
 
 /**
  * Array<T>: The OpenPose Basic Raw Data Container
@@ -410,4 +409,4 @@ class Array {
                       T* const dataPtr = nullptr);
 };
 
-#endif  // OPENPOSE_CORE_ARRAY_HPP
+}  // namespace openposert

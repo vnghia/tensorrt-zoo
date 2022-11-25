@@ -1,11 +1,11 @@
-#ifndef POSE_NMS_HPP
-#define POSE_NMS_HPP
+#pragma once
 
 #include <array>
 
-#include "Point.hpp"
+#include "openposert/point.hpp"
 
-namespace op {
+namespace openposert {
+
 template <typename T>
 void nmsCpu(T* targetPtr, int* kernelPtr, const T* const sourcePtr,
             const T threshold, const std::array<int, 4>& targetSize,
@@ -24,6 +24,5 @@ void nmsOcl(T* targetPtr, uint8_t* kernelGpuPtr, uint8_t* kernelCpuPtr,
             const std::array<int, 4>& targetSize,
             const std::array<int, 4>& sourceSize, const Point<T>& offset,
             const int gpuID = 0);
-}  // namespace op
 
-#endif  // POSE_NMS_HPP
+}  // namespace openposert

@@ -60,5 +60,27 @@ CUDA Architecture: ${CMAKE_CUDA_ARCHITECTURES}
 ============================================
 ")
 
-# Openpose
-add_subdirectory(openpose)
+# OpenposeRT
+add_library(${PROJECT_NAME}
+  src/array.cpp
+  src/body_part_connector.cu
+  src/open_pose.cu
+  src/point.cpp
+  src/pose_nms.cu
+  src/resize_and_merge.cu
+)
+
+target_compile_features(${PROJECT_NAME} PUBLIC cuda_std_17)
+target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
+
+target_link_libraries(${PROJECT_NAME}
+  PUBLIC ${OpenCV_LIBS}
+  tinytrt
+)
+
+target_link_directories(${PROJECT_NAME} PUBLIC ${OpenCV_LIB_DIR})
+
+target_include_directories(${PROJECT_NAME}
+  PUBLIC ${PROJECT_SOURCE_DIR}/include
+  ${OpenCV_INCLUDE_DIRS}
+)

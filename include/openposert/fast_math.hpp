@@ -1,8 +1,8 @@
-#ifndef OPENPOSE_UTILITIES_MATH_HPP
-#define OPENPOSE_UTILITIES_MATH_HPP
+#pragma once
 
-namespace op {
-// Use op::round/max/min for basic types (int, char, long, float, double, etc).
+namespace openposert {
+
+// Use round/max/min for basic types (int, char, long, float, double, etc).
 // Never with classes! `std::` alternatives uses 'const T&' instead of 'const T'
 // as argument. E.g., std::round is really slow (~300 ms vs ~10 ms when I
 // individually apply it to each element of a whole image array
@@ -73,6 +73,5 @@ template <class T>
 inline T fastTruncate(T value, T min = 0, T max = 1) {
   return fastMin(max, fastMax(min, value));
 }
-}  // namespace op
 
-#endif  // OPENPOSE_UTILITIES_MATH_HPP
+}  // namespace openposert

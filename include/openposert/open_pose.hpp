@@ -1,21 +1,12 @@
-/*
- * @Description: openpose tensorrt
- * @Author: zerollzeng
- * @Date: 2019-08-19 11:38:23
- * @LastEditTime: 2019-10-16 15:52:21
- * @LastEditors: zerollzeng
- * @Version: 1.0
- */
-#ifndef OPENPOSE_HPP
-#define OPENPOSE_HPP
-
-#include <NvCaffeParser.h>
-#include <NvInfer.h>
+#pragma once
 
 #include <string>
 #include <vector>
 
-class Trt;
+#include "Trt.h"
+
+namespace openposert {
+
 class OpenPose {
  public:
   /**
@@ -87,4 +78,4 @@ class OpenPose {
   float mScaleFactor = 8.f;
 };
 
-#endif
+}  // namespace openposert

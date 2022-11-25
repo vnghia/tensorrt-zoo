@@ -1,23 +1,9 @@
-/*
- * @Author: zerollzeng
- * @Date: 2019-10-10 18:07:54
- * @LastEditors: zerollzeng
- * @LastEditTime: 2019-10-10 18:07:54
- */
-#ifndef POINT_HPP
-#define POINT_HPP
-
-#define OVERLOAD_C_OUT(className)                         \
-  template <typename T>                                   \
-  std::ostream& operator<<(std::ostream& ostream,         \
-                           const op::className<T>& obj) { \
-    ostream << obj.toString();                            \
-    return ostream;                                       \
-  }
+#pragma once
 
 #include <string>
 
-namespace op {
+namespace openposert {
+
 template <typename T>
 struct Point {
   T x;
@@ -150,8 +136,4 @@ struct Point {
   Point<T> operator/(const T value) const;
 };
 
-// Static methods
-OVERLOAD_C_OUT(Point)
-}  // namespace op
-
-#endif  // OPENPOSE_CORE_POINT_HPP
+}  // namespace openposert

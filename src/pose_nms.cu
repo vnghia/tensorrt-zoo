@@ -1,13 +1,14 @@
-#include "PoseNMS.hpp"
-#include "cuda.cuh"
-#include "cuda.hpp"
+#include "openposert/cuda.cuh"
+#include "openposert/cuda.hpp"
+#include "openposert/pose_nms.hpp"
 #include "utils.h"
 
 #include "spdlog/spdlog.h"
 #include <thrust/device_ptr.h>
 #include <thrust/scan.h>
 
-namespace op {
+namespace openposert {
+
 const auto THREADS_PER_BLOCK_1D = 16u;
 const auto THREADS_PER_BLOCK = 512u;
 
@@ -201,4 +202,5 @@ template void nmsGpu(double *targetPtr, int *kernelPtr,
                      const std::array<int, 4> &targetSize,
                      const std::array<int, 4> &sourceSize,
                      const Point<double> &offset);
-} // namespace op
+
+} // namespace openposert
